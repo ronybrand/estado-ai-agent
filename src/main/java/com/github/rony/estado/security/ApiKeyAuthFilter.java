@@ -35,7 +35,14 @@ public class ApiKeyAuthFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        if ("/ask".equals(httpRequest.getRequestURI())) {
+        // Preflight CORS (OPTIONS) nunca carrega X-API-Key - navegadores nao
+        // enviam headers customizados nele. Precisa passar direto para o
+        // CorsFilter do Spring conseguir responder o preflight; senao todo
+        // POST cross-origin com esse header seria bloqueado no navegador
+        // antes mesmo de sair, mesmo com CORS configurado certo.
+        boolean isPreflight = "OPTIONS".equalsIgnoreCase(httpRequest.getMethod());
+
+        if (!isPreflight && "/ask".equals(httpRequest.getRequestURI())) {
             String providedKey = httpRequest.getHeader(API_KEY_HEADER);
             if (providedKey == null || !constantTimeEquals(providedKey, expectedApiKey)) {
                 httpResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
