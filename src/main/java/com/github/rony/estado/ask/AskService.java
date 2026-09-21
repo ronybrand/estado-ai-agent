@@ -30,7 +30,7 @@ public class AskService {
                     .call()
                     .content();
             log.info("Resposta do modelo de IA obtida com sucesso");
-            if (SystemPromptLeakGuard.isLeaking(answer, SystemPrompt.TEXT)) {
+            if (SystemPromptLeakGuard.isLeaking(answer)) {
                 // Guarda de saida deterministica: um prompt injection bem
                 // sucedido pode fazer o modelo obedecer e repetir as regras
                 // internas na resposta, apesar da instrucao no proprio
