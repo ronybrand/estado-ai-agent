@@ -1,10 +1,13 @@
 package com.github.rony.estado.config;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.util.Arrays;
 
 @Configuration
 public class CorsConfig {
@@ -13,9 +16,9 @@ public class CorsConfig {
     // precisar subir contexto Spring so pra validar como a string de env var
     // vira um array de origens).
     public static String[] parseOrigins(String allowedOrigins) {
-        String[] origins = java.util.Arrays.stream(allowedOrigins.split(","))
+        String[] origins = Arrays.stream(allowedOrigins.split(","))
                 .map(String::trim)
-                .filter(origin -> !origin.isEmpty())
+                .filter(StringUtils::isNotBlank)
                 .toArray(String[]::new);
 
         // Falha no startup em vez de silenciosamente aceitar curinga: um "*"
