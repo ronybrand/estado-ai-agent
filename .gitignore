@@ -34,3 +34,8 @@ build/
 
 ### Claude Code ###
 .claude/
+
+### Secrets locais ###
+.env
+.env.*
+!.env.example
