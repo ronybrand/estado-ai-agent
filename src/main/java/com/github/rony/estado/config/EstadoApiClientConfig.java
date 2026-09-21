@@ -1,5 +1,6 @@
 package com.github.rony.estado.config;
 
+import com.github.rony.estado.observability.RequestIdPropagationInterceptor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
 import org.springframework.boot.http.client.HttpClientSettings;
@@ -26,6 +27,7 @@ public class EstadoApiClientConfig {
         return RestClient.builder()
                 .baseUrl(baseUrl)
                 .requestFactory(requestFactory)
+                .requestInterceptor(new RequestIdPropagationInterceptor())
                 .build();
     }
 }
