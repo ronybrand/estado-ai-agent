@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import com.github.rony.estado.exception.ErrorCode;
 import com.github.rony.estado.exception.ErrorResponseWriter;
 import com.github.rony.estado.observability.CorrelationIdFilter;
+import com.github.rony.estado.web.AskEndpointMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -53,13 +54,7 @@ public class RateLimitFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        // Preflight CORS (OPTIONS) nao deve consumir o bucket do IP - e o
-        // navegador que gera essas requisicoes automaticamente antes de um
-        // POST cross-origin, nao o usuario; contar isso no rate limit faria
-        // usuarios legitimos baterem no limite bem antes do esperado.
-        boolean isPreflight = "OPTIONS".equalsIgnoreCase(httpRequest.getMethod());
-
-        if (!isPreflight && "/ask".equals(httpRequest.getRequestURI())) {
+        if (AskEndpointMatcher.appliesTo(httpRequest)) {
             String ip = httpRequest.getRemoteAddr();
             Bucket bucket = buckets.get(ip, key -> createNewBucket());
 
