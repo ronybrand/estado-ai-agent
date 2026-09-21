@@ -24,7 +24,10 @@ import java.util.UUID;
 public class CorrelationIdFilter implements Filter {
 
     static final String HEADER = "X-Request-Id";
-    static final String MDC_KEY = "requestId";
+    // public: unica fonte de verdade da chave MDC, tambem lida pelo
+    // GlobalExceptionHandler (pacote exception) pra ecoar o requestId no
+    // corpo de erro.
+    public static final String MDC_KEY = "requestId";
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
