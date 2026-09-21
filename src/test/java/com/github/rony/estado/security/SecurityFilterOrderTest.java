@@ -24,7 +24,7 @@ class SecurityFilterOrderTest {
 
     @Test
     void bruteForceAttemptsWithWrongApiKeyAreRateLimited() throws ServletException, IOException {
-        RateLimitFilter rateLimitFilter = new RateLimitFilter();
+        RateLimitFilter rateLimitFilter = new RateLimitFilter(10, 1);
         ApiKeyAuthFilter apiKeyAuthFilter = new ApiKeyAuthFilter(VALID_KEY);
         FilterChain terminalChain = mock(FilterChain.class);
 

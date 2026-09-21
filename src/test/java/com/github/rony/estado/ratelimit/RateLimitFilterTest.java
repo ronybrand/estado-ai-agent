@@ -21,9 +21,12 @@ import static org.mockito.Mockito.verify;
 
 class RateLimitFilterTest {
 
+    private static final int DEFAULT_CAPACITY = 10;
+    private static final int DEFAULT_WINDOW_MINUTES = 1;
+
     @Test
     void shouldAllowUnderLimit() throws ServletException, IOException {
-        RateLimitFilter filter = new RateLimitFilter();
+        RateLimitFilter filter = new RateLimitFilter(DEFAULT_CAPACITY, DEFAULT_WINDOW_MINUTES);
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRequestURI("/ask");
         request.setRemoteAddr("127.0.0.1");
@@ -39,7 +42,7 @@ class RateLimitFilterTest {
 
     @Test
     void shouldBlockOverLimit() throws ServletException, IOException {
-        RateLimitFilter filter = new RateLimitFilter();
+        RateLimitFilter filter = new RateLimitFilter(DEFAULT_CAPACITY, DEFAULT_WINDOW_MINUTES);
         FilterChain chain = mock(FilterChain.class);
 
         for (int i = 0; i < 10; i++) {
@@ -54,7 +57,7 @@ class RateLimitFilterTest {
         request.setRequestURI("/ask");
         request.setRemoteAddr("192.168.0.1");
         MockHttpServletResponse response = new MockHttpServletResponse();
-        
+
         filter.doFilter(request, response, chain);
 
         assertThat(response.getStatus()).isEqualTo(429);
@@ -62,11 +65,38 @@ class RateLimitFilterTest {
     }
 
     @Test
+    void shouldRespectConfiguredCapacityInsteadOfHardcodedTen() throws ServletException, IOException {
+        // Regressao para o clamping hardcoded de 10 req/min - a capacidade
+        // deve vir de app.ratelimit.capacity-per-window, nao de uma constante
+        // fixa no codigo (exigia recompilar pra ajustar em producao).
+        RateLimitFilter filter = new RateLimitFilter(3, DEFAULT_WINDOW_MINUTES);
+        FilterChain chain = mock(FilterChain.class);
+        String ip = "198.51.100.1";
+
+        for (int i = 0; i < 3; i++) {
+            MockHttpServletRequest request = new MockHttpServletRequest();
+            request.setRequestURI("/ask");
+            request.setRemoteAddr(ip);
+            filter.doFilter(request, new MockHttpServletResponse(), chain);
+        }
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRequestURI("/ask");
+        request.setRemoteAddr(ip);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        filter.doFilter(request, response, chain);
+
+        assertThat(response.getStatus()).isEqualTo(429);
+        verify(chain, times(3)).doFilter(any(), any());
+    }
+
+    @Test
     void shouldBypassPreflightOptionsRequestWithoutConsumingBucket() throws ServletException, IOException {
         // Preflight CORS (OPTIONS) e gerado automaticamente pelo navegador,
         // nao pelo usuario - contar isso no rate limit faria usuarios
         // legitimos baterem no limite de 10 req/min bem antes do esperado.
-        RateLimitFilter filter = new RateLimitFilter();
+        RateLimitFilter filter = new RateLimitFilter(DEFAULT_CAPACITY, DEFAULT_WINDOW_MINUTES);
         FilterChain chain = mock(FilterChain.class);
         String ip = "10.10.10.10";
 
@@ -89,7 +119,7 @@ class RateLimitFilterTest {
     void shouldNotShareRateLimitBucketWithRoutesThatOnlyStartWithAskPrefix() throws ServletException, IOException {
         // "/ask" e um match exato de rota, nao um prefixo: uma rota futura como "/ask-admin"
         // nao deve compartilhar o bucket de "/ask" nem ser limitada por engano.
-        RateLimitFilter filter = new RateLimitFilter();
+        RateLimitFilter filter = new RateLimitFilter(DEFAULT_CAPACITY, DEFAULT_WINDOW_MINUTES);
         FilterChain chain = mock(FilterChain.class);
         String ip = "172.16.0.1";
 
@@ -121,7 +151,7 @@ class RateLimitFilterTest {
         logger.addAppender(appender);
 
         try {
-            RateLimitFilter filter = new RateLimitFilter();
+            RateLimitFilter filter = new RateLimitFilter(DEFAULT_CAPACITY, DEFAULT_WINDOW_MINUTES);
             FilterChain chain = mock(FilterChain.class);
             String ip = "203.0.113.5";
 
