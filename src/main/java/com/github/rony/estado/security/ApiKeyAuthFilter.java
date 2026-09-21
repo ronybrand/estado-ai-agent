@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import com.github.rony.estado.exception.ErrorCode;
 import com.github.rony.estado.exception.ErrorResponseWriter;
 import com.github.rony.estado.observability.CorrelationIdFilter;
+import com.github.rony.estado.web.FilterOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -23,7 +24,7 @@ import java.security.MessageDigest;
 import java.nio.charset.StandardCharsets;
 
 @Component
-@Order(2)
+@Order(FilterOrder.API_KEY_AUTH)
 public class ApiKeyAuthFilter implements Filter {
 
     private static final Logger log = LoggerFactory.getLogger(ApiKeyAuthFilter.class);

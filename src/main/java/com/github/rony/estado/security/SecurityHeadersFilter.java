@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletResponse;
+import com.github.rony.estado.web.FilterOrder;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +15,7 @@ import java.io.IOException;
 // Piso minimo de security headers aplicado a toda resposta - defesa em
 // profundidade independente do payload de cada endpoint.
 @Component
-@Order(-1)
+@Order(FilterOrder.SECURITY_HEADERS)
 public class SecurityHeadersFilter implements Filter {
 
     @Override

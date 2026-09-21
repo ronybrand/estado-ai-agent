@@ -7,6 +7,7 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import com.github.rony.estado.web.FilterOrder;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.MDC;
 import org.springframework.core.annotation.Order;
@@ -20,7 +21,7 @@ import java.util.UUID;
 // log da requisicao, e devolvido no header de resposta para o cliente
 // conseguir correlacionar com o proprio log dele.
 @Component
-@Order(-2)
+@Order(FilterOrder.CORRELATION_ID)
 public class CorrelationIdFilter implements Filter {
 
     static final String HEADER = "X-Request-Id";
