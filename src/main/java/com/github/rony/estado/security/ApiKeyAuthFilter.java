@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import com.github.rony.estado.exception.ErrorCode;
 import com.github.rony.estado.exception.ErrorResponseWriter;
 import com.github.rony.estado.observability.CorrelationIdFilter;
+import com.github.rony.estado.web.AskEndpointMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -42,14 +43,7 @@ public class ApiKeyAuthFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        // Preflight CORS (OPTIONS) nunca carrega X-API-Key - navegadores nao
-        // enviam headers customizados nele. Precisa passar direto para o
-        // CorsFilter do Spring conseguir responder o preflight; senao todo
-        // POST cross-origin com esse header seria bloqueado no navegador
-        // antes mesmo de sair, mesmo com CORS configurado certo.
-        boolean isPreflight = "OPTIONS".equalsIgnoreCase(httpRequest.getMethod());
-
-        if (!isPreflight && "/ask".equals(httpRequest.getRequestURI())) {
+        if (AskEndpointMatcher.appliesTo(httpRequest)) {
             String providedKey = httpRequest.getHeader(API_KEY_HEADER);
             if (providedKey == null || !constantTimeEquals(providedKey, expectedApiKey)) {
                 log.warn("Tentativa de acesso a /ask rejeitada (API key ausente ou invalida), ip={}",
