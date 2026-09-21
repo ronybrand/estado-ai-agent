@@ -3,6 +3,7 @@ package com.github.rony.estado.config;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CorsConfigTest {
 
@@ -29,5 +30,21 @@ class CorsConfigTest {
         String[] origins = CorsConfig.parseOrigins("http://localhost:4200,");
 
         assertThat(origins).containsExactly("http://localhost:4200");
+    }
+
+    @Test
+    void shouldRejectWildcardOrigin() {
+        // Erro de configuracao real que a validacao previne: ASK_CORS_ALLOWED_ORIGINS=*
+        // derrubaria a unica camada que restringe quem chama /ask a partir do
+        // navegador, sem nenhum aviso.
+        assertThatThrownBy(() -> CorsConfig.parseOrigins("*"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("*");
+    }
+
+    @Test
+    void shouldRejectWildcardOriginMixedWithValidOnes() {
+        assertThatThrownBy(() -> CorsConfig.parseOrigins("http://localhost:4200,*"))
+                .isInstanceOf(IllegalStateException.class);
     }
 }

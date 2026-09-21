@@ -13,10 +13,24 @@ public class CorsConfig {
     // precisar subir contexto Spring so pra validar como a string de env var
     // vira um array de origens).
     public static String[] parseOrigins(String allowedOrigins) {
-        return java.util.Arrays.stream(allowedOrigins.split(","))
+        String[] origins = java.util.Arrays.stream(allowedOrigins.split(","))
                 .map(String::trim)
                 .filter(origin -> !origin.isEmpty())
                 .toArray(String[]::new);
+
+        // Falha no startup em vez de silenciosamente aceitar curinga: um "*"
+        // em ASK_CORS_ALLOWED_ORIGINS (erro de configuracao) derrubaria a
+        // unica camada que restringe quem chama /ask a partir do navegador -
+        // a API key continuaria exigida, mas a defesa em profundidade do
+        // CORS seria perdida sem nenhum aviso.
+        for (String origin : origins) {
+            if ("*".equals(origin)) {
+                throw new IllegalStateException(
+                        "ASK_CORS_ALLOWED_ORIGINS nao pode conter '*' - liste as origens explicitamente");
+            }
+        }
+
+        return origins;
     }
 
     @Bean
