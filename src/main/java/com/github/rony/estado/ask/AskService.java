@@ -19,6 +19,9 @@ public class AskService {
         this.chatClient = chatClient;
     }
 
+    private static final String LEAK_REFUSAL_MESSAGE =
+            "Nao posso compartilhar essa informacao. Posso ajudar com perguntas sobre os estados brasileiros.";
+
     AskResponse ask(AskRequest request) {
         log.info("Consultando modelo de IA, tamanho da pergunta={}", request.question().length());
         try {
@@ -27,6 +30,14 @@ public class AskService {
                     .call()
                     .content();
             log.info("Resposta do modelo de IA obtida com sucesso");
+            if (SystemPromptLeakGuard.isLeaking(answer)) {
+                // Guarda de saida deterministica: um prompt injection bem
+                // sucedido pode fazer o modelo obedecer e repetir as regras
+                // internas na resposta, apesar da instrucao no proprio
+                // system prompt para nunca fazer isso (defesa probabilistica).
+                log.warn("Resposta do modelo de IA continha vazamento do system prompt - substituida");
+                return new AskResponse(LEAK_REFUSAL_MESSAGE);
+            }
             return new AskResponse(answer);
         } catch (RestClientException e) {
             log.warn("Falha ao consultar a API de estados via modelo de IA", e);
