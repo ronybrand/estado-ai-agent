@@ -17,6 +17,7 @@ import com.github.rony.estado.observability.CorrelationIdFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -40,9 +41,24 @@ public class RateLimitFilter implements Filter {
             .maximumSize(100_000)
             .build();
 
+    private final int capacityPerWindow;
+    private final int windowMinutes;
+
+    // Capacidade e janela configuraveis via properties (default: 10 req/min,
+    // o limite original, calibrado para o free tier do Gemini) - antes eram
+    // constantes fixas no codigo, exigindo recompilar para ajustar em producao.
+    public RateLimitFilter(
+            @Value("${app.ratelimit.capacity-per-window:10}") int capacityPerWindow,
+            @Value("${app.ratelimit.window-minutes:1}") int windowMinutes) {
+        this.capacityPerWindow = capacityPerWindow;
+        this.windowMinutes = windowMinutes;
+    }
+
     private Bucket createNewBucket() {
-        // Limite de 10 requests por minuto por IP para o free tier do Gemini
-        Bandwidth limit = Bandwidth.builder().capacity(10).refillGreedy(10, Duration.ofMinutes(1)).build();
+        Bandwidth limit = Bandwidth.builder()
+                .capacity(capacityPerWindow)
+                .refillGreedy(capacityPerWindow, Duration.ofMinutes(windowMinutes))
+                .build();
         return Bucket.builder().addLimit(limit).build();
     }
 
