@@ -9,12 +9,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(InvalidInputException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidInput(InvalidInputException exception) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponse(exception.errorCode().code(), exception.getMessage()));
-    }
-
     @ExceptionHandler(UpstreamServiceException.class)
     public ResponseEntity<ErrorResponse> handleUpstreamFailure(UpstreamServiceException exception) {
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
