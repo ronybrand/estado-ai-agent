@@ -32,7 +32,7 @@ public class RateLimitFilter implements Filter {
             .maximumSize(100_000)
             .build();
 
-    private Bucket createNewBucket(String ip) {
+    private Bucket createNewBucket() {
         // Limite de 10 requests por minuto por IP para o free tier do Gemini
         Bandwidth limit = Bandwidth.builder().capacity(10).refillGreedy(10, Duration.ofMinutes(1)).build();
         return Bucket.builder().addLimit(limit).build();
@@ -47,7 +47,7 @@ public class RateLimitFilter implements Filter {
 
         if ("/ask".equals(httpRequest.getRequestURI())) {
             String ip = httpRequest.getRemoteAddr();
-            Bucket bucket = buckets.get(ip, this::createNewBucket);
+            Bucket bucket = buckets.get(ip, key -> createNewBucket());
 
             if (bucket.tryConsume(1)) {
                 chain.doFilter(request, response);
