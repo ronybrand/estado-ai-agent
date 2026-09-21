@@ -7,8 +7,12 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import com.github.rony.estado.exception.ErrorCode;
+import com.github.rony.estado.exception.ErrorResponseWriter;
+import com.github.rony.estado.observability.CorrelationIdFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -50,8 +54,8 @@ public class ApiKeyAuthFilter implements Filter {
             if (providedKey == null || !constantTimeEquals(providedKey, expectedApiKey)) {
                 log.warn("Tentativa de acesso a /ask rejeitada (API key ausente ou invalida), ip={}",
                         httpRequest.getRemoteAddr());
-                httpResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
-                httpResponse.getWriter().write("Unauthorized");
+                ErrorResponseWriter.write(httpResponse, HttpStatus.UNAUTHORIZED, ErrorCode.ASK_03_UNAUTHORIZED,
+                        "API key ausente ou invalida", MDC.get(CorrelationIdFilter.MDC_KEY));
                 return;
             }
         }

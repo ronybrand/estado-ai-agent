@@ -53,4 +53,36 @@ class GlobalExceptionHandlerTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().requestId()).isNull();
     }
+
+    @Test
+    void shouldMapUnexpectedExceptionTo500WithStandardErrorCode() {
+        RuntimeException exception = new RuntimeException("algo inesperado explodiu");
+
+        ResponseEntity<ErrorResponse> response = handler.handleUnexpectedFailure(exception);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().code()).isEqualTo("ASK-99");
+    }
+
+    @Test
+    void shouldNotLeakInternalExceptionMessageInGenericHandler() {
+        RuntimeException exception = new RuntimeException("stacktrace sensivel com detalhe interno");
+
+        ResponseEntity<ErrorResponse> response = handler.handleUnexpectedFailure(exception);
+
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().message()).doesNotContain("stacktrace sensivel");
+    }
+
+    @Test
+    void shouldEchoRequestIdFromMdcInUnexpectedFailureResponse() {
+        MDC.put(CorrelationIdFilter.MDC_KEY, "traced-id");
+        RuntimeException exception = new RuntimeException("boom");
+
+        ResponseEntity<ErrorResponse> response = handler.handleUnexpectedFailure(exception);
+
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().requestId()).isEqualTo("traced-id");
+    }
 }
