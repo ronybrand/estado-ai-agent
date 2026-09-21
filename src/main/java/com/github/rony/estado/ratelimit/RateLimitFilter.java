@@ -11,6 +11,8 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -21,6 +23,8 @@ import java.time.Duration;
 @Component
 @Order(1)
 public class RateLimitFilter implements Filter {
+
+    private static final Logger log = LoggerFactory.getLogger(RateLimitFilter.class);
 
     // Roda antes do ApiKeyAuthFilter (Order 1 < 2) para que tentativas de força bruta
     // da API key também sejam limitadas por IP, não só requisições autenticadas.
@@ -58,6 +62,7 @@ public class RateLimitFilter implements Filter {
             if (bucket.tryConsume(1)) {
                 chain.doFilter(request, response);
             } else {
+                log.warn("Rate limit excedido para /ask, ip={}", ip);
                 httpResponse.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
                 httpResponse.getWriter().write("Too many requests");
             }
