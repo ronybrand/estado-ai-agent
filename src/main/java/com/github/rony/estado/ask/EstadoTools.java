@@ -8,9 +8,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Component
 public class EstadoTools {
 
-    private static final int MAX_PAGE_SIZE = 100;
-    private static final int DEFAULT_PAGE_SIZE = 20;
-
     private final RestClient restClient;
 
     public EstadoTools(RestClient restClient) {
@@ -20,13 +17,12 @@ public class EstadoTools {
     @Tool(description = "Lista os estados brasileiros cadastrados com paginação (retorna a página de estados). "
             + "O page padrão é 0 e o size padrão é 20 (máximo permitido: 100).")
     public String listEstados(int page, int size) {
-        int safePage = Math.max(page, 0);
-        int safeSize = size <= 0 ? DEFAULT_PAGE_SIZE : Math.min(size, MAX_PAGE_SIZE);
+        PaginationParams params = PaginationParams.of(page, size);
 
         return restClient.get()
                 .uri(UriComponentsBuilder.fromPath("/estado/paginado")
-                        .queryParam("page", safePage)
-                        .queryParam("size", safeSize)
+                        .queryParam("page", params.page())
+                        .queryParam("size", params.size())
                         .build().toUriString())
                 .retrieve()
                 .body(String.class);
