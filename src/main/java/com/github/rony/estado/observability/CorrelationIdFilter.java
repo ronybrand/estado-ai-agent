@@ -37,7 +37,7 @@ public class CorrelationIdFilter implements Filter {
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
         String requestId = httpRequest.getHeader(HEADER);
-        if (StringUtils.isBlank(requestId)) {
+        if (!isValidUuid(requestId)) {
             requestId = UUID.randomUUID().toString();
         }
 
@@ -47,6 +47,24 @@ public class CorrelationIdFilter implements Filter {
             chain.doFilter(request, response);
         } finally {
             MDC.remove(MDC_KEY);
+        }
+    }
+
+    // O valor recebido do cliente vai parar no MDC (logado em toda linha da
+    // requisicao), no header de resposta e no corpo JSON de erro - sem essa
+    // validacao, um cliente poderia injetar quebras de linha (log forging)
+    // ou uma string enorme nesses tres lugares. So aceita o formato que a
+    // aplicacao mesmo gera (UUID); qualquer coisa fora disso e substituida
+    // por um UUID novo em vez de tentar sanitizar.
+    private static boolean isValidUuid(String value) {
+        if (StringUtils.isBlank(value)) {
+            return false;
+        }
+        try {
+            UUID.fromString(value);
+            return true;
+        } catch (IllegalArgumentException _) {
+            return false;
         }
     }
 }
