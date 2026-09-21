@@ -56,6 +56,30 @@ class RateLimitFilterTest {
     }
 
     @Test
+    void shouldBypassPreflightOptionsRequestWithoutConsumingBucket() throws ServletException, IOException {
+        // Preflight CORS (OPTIONS) e gerado automaticamente pelo navegador,
+        // nao pelo usuario - contar isso no rate limit faria usuarios
+        // legitimos baterem no limite de 10 req/min bem antes do esperado.
+        RateLimitFilter filter = new RateLimitFilter();
+        FilterChain chain = mock(FilterChain.class);
+        String ip = "10.10.10.10";
+
+        for (int i = 0; i < 20; i++) {
+            MockHttpServletRequest request = new MockHttpServletRequest();
+            request.setMethod("OPTIONS");
+            request.setRequestURI("/ask");
+            request.setRemoteAddr(ip);
+            MockHttpServletResponse response = new MockHttpServletResponse();
+
+            filter.doFilter(request, response, chain);
+
+            assertThat(response.getStatus()).isEqualTo(200);
+        }
+
+        verify(chain, times(20)).doFilter(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
     void shouldNotShareRateLimitBucketWithRoutesThatOnlyStartWithAskPrefix() throws ServletException, IOException {
         // "/ask" e um match exato de rota, nao um prefixo: uma rota futura como "/ask-admin"
         // nao deve compartilhar o bucket de "/ask" nem ser limitada por engano.

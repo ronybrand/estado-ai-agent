@@ -9,10 +9,20 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class CorsConfig {
 
+    // Publico e estatico para ser testavel isoladamente (parsing puro, sem
+    // precisar subir contexto Spring so pra validar como a string de env var
+    // vira um array de origens).
+    public static String[] parseOrigins(String allowedOrigins) {
+        return java.util.Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(origin -> !origin.isEmpty())
+                .toArray(String[]::new);
+    }
+
     @Bean
     public WebMvcConfigurer corsConfigurer(
             @Value("${app.security.cors-allowed-origins}") String allowedOrigins) {
-        String[] origins = allowedOrigins.split(",");
+        String[] origins = parseOrigins(allowedOrigins);
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {

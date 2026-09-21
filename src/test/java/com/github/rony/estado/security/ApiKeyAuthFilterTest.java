@@ -78,6 +78,25 @@ class ApiKeyAuthFilterTest {
     }
 
     @Test
+    void shouldBypassPreflightOptionsRequestEvenWithoutApiKey() throws ServletException, IOException {
+        // Preflight CORS (OPTIONS) nunca carrega X-API-Key - navegadores nao
+        // enviam headers customizados nele. Se esse filtro bloqueasse o
+        // preflight com 401, o navegador nunca chegaria a mandar o POST real,
+        // mesmo com CORS configurado corretamente no backend (bug real
+        // encontrado testando a integracao com o Angular).
+        ApiKeyAuthFilter filter = new ApiKeyAuthFilter(VALID_KEY);
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setMethod("OPTIONS");
+        request.setRequestURI("/ask");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain chain = mock(FilterChain.class);
+
+        filter.doFilter(request, response, chain);
+
+        verify(chain, times(1)).doFilter(request, response);
+    }
+
+    @Test
     void shouldBypassRoutesThatOnlyStartWithAskPrefix() throws ServletException, IOException {
         // "/ask" e um match exato de rota, nao um prefixo: uma rota futura como "/ask-admin"
         // ou "/askXPTO" nao deve ser protegida (nem afetada) por engano por este filtro.
