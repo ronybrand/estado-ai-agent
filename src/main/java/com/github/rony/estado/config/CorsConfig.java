@@ -19,7 +19,11 @@ public class CorsConfig {
                 registry.addMapping("/ask")
                         .allowedOrigins(origins)
                         .allowedMethods("POST")
-                        .allowedHeaders("Content-Type", "X-API-Key");
+                        // X-Request-Id: o Angular anexa em toda requisicao via
+                        // requestIdInterceptor, mesmo pro ai-agent (nao usado
+                        // aqui hoje, mas precisa ser aceito no preflight senao
+                        // o navegador bloqueia a chamada inteira por CORS).
+                        .allowedHeaders("Content-Type", "X-API-Key", "X-Request-Id");
             }
         };
     }
