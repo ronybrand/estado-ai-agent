@@ -7,6 +7,8 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 @Order(2)
 public class ApiKeyAuthFilter implements Filter {
 
+    private static final Logger log = LoggerFactory.getLogger(ApiKeyAuthFilter.class);
     private static final String API_KEY_HEADER = "X-API-Key";
 
     private final String expectedApiKey;
@@ -45,6 +48,8 @@ public class ApiKeyAuthFilter implements Filter {
         if (!isPreflight && "/ask".equals(httpRequest.getRequestURI())) {
             String providedKey = httpRequest.getHeader(API_KEY_HEADER);
             if (providedKey == null || !constantTimeEquals(providedKey, expectedApiKey)) {
+                log.warn("Tentativa de acesso a /ask rejeitada (API key ausente ou invalida), ip={}",
+                        httpRequest.getRemoteAddr());
                 httpResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
                 httpResponse.getWriter().write("Unauthorized");
                 return;

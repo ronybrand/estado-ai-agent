@@ -1,0 +1,49 @@
+package com.github.rony.estado.observability;
+
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.MDC;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.util.UUID;
+
+// Gera/propaga um id de correlacao por requisicao (X-Request-Id), disponivel
+// no MDC durante toda a cadeia de filtros/controller para aparecer em todo
+// log da requisicao, e devolvido no header de resposta para o cliente
+// conseguir correlacionar com o proprio log dele.
+@Component
+@Order(-2)
+public class CorrelationIdFilter implements Filter {
+
+    static final String HEADER = "X-Request-Id";
+    static final String MDC_KEY = "requestId";
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        HttpServletResponse httpResponse = (HttpServletResponse) response;
+
+        String requestId = httpRequest.getHeader(HEADER);
+        if (StringUtils.isBlank(requestId)) {
+            requestId = UUID.randomUUID().toString();
+        }
+
+        httpResponse.setHeader(HEADER, requestId);
+        MDC.put(MDC_KEY, requestId);
+        try {
+            chain.doFilter(request, response);
+        } finally {
+            MDC.remove(MDC_KEY);
+        }
+    }
+}

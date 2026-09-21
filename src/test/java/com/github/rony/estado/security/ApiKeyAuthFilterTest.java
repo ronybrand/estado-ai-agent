@@ -1,8 +1,13 @@
 package com.github.rony.estado.security;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
@@ -110,5 +115,31 @@ class ApiKeyAuthFilterTest {
 
         verify(chain, times(1)).doFilter(request, response);
         assertThat(response.getStatus()).isEqualTo(200);
+    }
+
+    @Test
+    void shouldLogWarnWithClientIpWhenApiKeyIsRejected() throws ServletException, IOException {
+        Logger logger = (Logger) LoggerFactory.getLogger(ApiKeyAuthFilter.class);
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        logger.addAppender(appender);
+
+        try {
+            ApiKeyAuthFilter filter = new ApiKeyAuthFilter(VALID_KEY);
+            MockHttpServletRequest request = new MockHttpServletRequest();
+            request.setRequestURI("/ask");
+            request.addHeader("X-API-Key", "wrong-key");
+            request.setRemoteAddr("10.0.0.1");
+            MockHttpServletResponse response = new MockHttpServletResponse();
+            FilterChain chain = mock(FilterChain.class);
+
+            filter.doFilter(request, response, chain);
+
+            assertThat(appender.list)
+                    .anyMatch(event -> event.getLevel() == Level.WARN
+                            && event.getFormattedMessage().contains("10.0.0.1"));
+        } finally {
+            logger.detachAppender(appender);
+        }
     }
 }
