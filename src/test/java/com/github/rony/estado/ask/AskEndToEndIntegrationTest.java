@@ -16,16 +16,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 // Teste fim-a-fim: sobe o contexto Spring inteiro (filtros de seguranca,
-// rate limit, correlation id, CORS, controller e exception handler reais)
-// via @AutoConfigureMockMvc com o webAppContext completo (addFilters=true,
-// o padrao), ao contrario de AskControllerWebMvcTest (@WebMvcTest com
+// rate limit, correlation id, controller e exception handler reais) via
+// @AutoConfigureMockMvc com o webAppContext completo (addFilters=true, o
+// padrao), ao contrario de AskControllerWebMvcTest (@WebMvcTest com
 // addFilters=false). Apenas AskService e mockado, para nao depender do
 // Gemini/API de estados de verdade - todo o resto roda como em producao.
 @SpringBootTest(properties = {
         "spring.ai.google.genai.api-key=dummy-test-key",
         "estado.api.base-url=http://localhost:0",
-        "app.security.api-key=test-api-key",
-        "app.security.cors-allowed-origins=http://localhost:4200"
+        "app.security.api-key=test-api-key"
 })
 @AutoConfigureMockMvc
 class AskEndToEndIntegrationTest {
@@ -104,13 +103,5 @@ class AskEndToEndIntegrationTest {
                         .header("X-Request-Id", requestId)
                         .content("{\"question\":\"Qual a capital do Brasil?\"}"))
                 .andExpect(header().string("X-Request-Id", requestId));
-    }
-
-    @Test
-    void shouldNotAllowCrossOriginRequestFromUnlistedOriginThroughRealCorsConfig() throws Exception {
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options("/ask")
-                        .header("Origin", "https://evil.example.com")
-                        .header("Access-Control-Request-Method", "POST"))
-                .andExpect(status().isForbidden());
     }
 }

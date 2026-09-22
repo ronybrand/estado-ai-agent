@@ -34,7 +34,6 @@ Nenhuma das variáveis abaixo tem valor padrão além das indicadas - a aplicaç
 | `GEMINI_API_KEY` | sim | API key do Google Gemini |
 | `ESTADO_API_BASE_URL` | sim | URL base da API `estado` (ex.: `http://localhost:8080`) |
 | `ASK_API_KEY` | sim | Chave exigida no header `X-API-Key` para chamar `/ask` |
-| `ASK_CORS_ALLOWED_ORIGINS` | sim | Origens autorizadas via CORS, separadas por vírgula (nunca aceita `*`) |
 | `ASK_RATE_LIMIT_CAPACITY` | não (default `10`) | Requisições por IP permitidas por janela em `/ask` |
 | `ASK_RATE_LIMIT_WINDOW_MINUTES` | não (default `1`) | Duração da janela do rate limit, em minutos |
 
@@ -46,7 +45,6 @@ Nenhuma das variáveis abaixo tem valor padrão além das indicadas - a aplicaç
    export GEMINI_API_KEY="sua-chave-do-gemini"
    export ESTADO_API_BASE_URL="http://localhost:8080"
    export ASK_API_KEY="uma-chave-qualquer-para-testes-locais"
-   export ASK_CORS_ALLOWED_ORIGINS="http://localhost:4200"
    ```
 3. Execute o projeto: `./mvnw spring-boot:run`
 4. Teste a API:
