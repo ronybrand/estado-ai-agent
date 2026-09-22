@@ -4,6 +4,9 @@
 # ~/estado-ai-agent/deploy.sh
 set -euo pipefail
 cd "$(dirname "$0")"
+set -a
+source .env
+set +a
 source ./lib-swap.sh
 
 IMAGE="ghcr.io/ronybrand/estado-ai-agent:latest"
@@ -39,6 +42,9 @@ if swap_to "$IMAGE"; then
         echo "$PREVIOUS_TAG" > last-good-tag
         echo "Tag anterior registrada em last-good-tag: $PREVIOUS_TAG"
     fi
+
+    NEW_TAG="$(image_revision "$NEW_ID")"
+    annotate_deploy "Deploy: estado-ai-agent-app -> ${NEW_TAG:-$NEW_ID}" '["deploy","estado-ai-agent"]'
 else
     echo "Health check falhou, mantendo versao anterior no ar." >&2
     exit 1

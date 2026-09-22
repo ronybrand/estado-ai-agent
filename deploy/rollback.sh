@@ -9,6 +9,9 @@
 #   ./rollback.sh <sha>    # usa uma tag/sha especifica ja publicada no GHCR
 set -euo pipefail
 cd "$(dirname "$0")"
+set -a
+source .env
+set +a
 source ./lib-swap.sh
 
 CURRENT="estado-ai-agent-app"
@@ -31,6 +34,7 @@ docker pull "$IMAGE" >/dev/null
 if swap_to "$IMAGE"; then
     promote
     echo "Rollback concluido: $CURRENT agora roda $IMAGE"
+    annotate_deploy "Rollback: estado-ai-agent-app -> ${TAG}" '["deploy","estado-ai-agent","rollback"]'
 else
     echo "Rollback abortado: $IMAGE tambem nao ficou saudavel. Investigar manualmente antes de tentar outra tag." >&2
     exit 1
