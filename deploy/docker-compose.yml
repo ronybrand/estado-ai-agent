@@ -1,3 +1,7 @@
+# Usado so pro bring-up inicial manual (docker compose up -d). Depois
+# disso, deploy.sh assume o container (rolling swap sem downtime, via
+# estado-ai-agent-deploy.timer) - mesmo padrao do repo estado, onde o
+# compose so gerencia o que deploy.sh nao precisa trocar em cada deploy.
 services:
   app:
     image: ghcr.io/ronybrand/estado-ai-agent:latest
