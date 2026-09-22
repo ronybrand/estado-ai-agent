@@ -1,0 +1,11 @@
+[Unit]
+Description=Rolling swap da imagem mais recente do estado-ai-agent
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/ec2-user/estado-ai-agent
+ExecStart=/home/ec2-user/estado-ai-agent/deploy.sh
+User=ec2-user
+Group=docker
