@@ -4,6 +4,7 @@
 # ~/estado-ai-agent/deploy.sh
 set -euo pipefail
 cd "$(dirname "$0")"
+source ./lib-swap.sh
 
 IMAGE="ghcr.io/ronybrand/estado-ai-agent:latest"
 CURRENT="estado-ai-agent-app"
@@ -21,34 +22,24 @@ fi
 
 echo "Nova imagem detectada, subindo container novo ($NEXT)..."
 
-docker rm -f "$NEXT" >/dev/null 2>&1 || true
+# Guarda a tag da versao que esta rodando agora (presumivelmente boa, ja
+# passou por este mesmo health check no deploy anterior) antes de troca-la
+# - permite rollback manual rapido se a versao nova tiver um bug funcional
+# que nao derruba o health check. Ver rollback.sh.
+PREVIOUS_TAG=""
+if [ -n "$CURRENT_ID" ]; then
+    PREVIOUS_TAG="$(image_revision "$CURRENT_ID")"
+fi
 
-# --env-file (nao -e por variavel): este app so tem um env_file simples
-# (.env), sem segredos vindos de fontes distintas como o estado (que
-# precisa escapar $ no BCrypt hash, ver deploy/estado/lib-swap.sh la) -
-# nenhum valor aqui tem "$" no meio, entao --env-file e seguro e evita
-# ter que listar cada variavel manualmente (ASK_API_KEY, GEMINI_API_KEY,
-# ASK_CORS_ALLOWED_ORIGINS, etc.) toda vez que uma nova for adicionada.
-docker run -d --name "$NEXT" \
-    --restart unless-stopped \
-    --network estado_internal \
-    --env-file .env \
-    -e ESTADO_API_BASE_URL="http://estado-app:8080" \
-    "$IMAGE" >/dev/null
-
-if docker run --rm --network estado_internal curlimages/curl:8.11.1 sh -c "
-    for i in \$(seq 1 30); do
-        curl -sf http://${NEXT}:8080/actuator/health >/dev/null 2>&1 && exit 0
-        sleep 2
-    done
-    exit 1
-"; then
-    docker rm -f "$CURRENT" >/dev/null 2>&1 || true
-    docker rename "$NEXT" "$CURRENT"
+if swap_to "$IMAGE"; then
+    promote
     echo "Deploy concluido sem downtime: $CURRENT agora roda $IMAGE ($NEW_ID)"
+
+    if [ -n "$PREVIOUS_TAG" ]; then
+        echo "$PREVIOUS_TAG" > last-good-tag
+        echo "Tag anterior registrada em last-good-tag: $PREVIOUS_TAG"
+    fi
 else
     echo "Health check falhou, mantendo versao anterior no ar." >&2
-    docker logs "$NEXT" --tail 50 2>&1 || true
-    docker rm -f "$NEXT" >/dev/null 2>&1 || true
     exit 1
 fi
