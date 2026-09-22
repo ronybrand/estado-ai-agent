@@ -1,0 +1,23 @@
+services:
+  app:
+    image: ghcr.io/ronybrand/estado-ai-agent:latest
+    container_name: estado-ai-agent-app
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      ESTADO_API_BASE_URL: http://estado-app:8080
+    networks:
+      - estado_internal
+
+networks:
+  # Compartilhada com o backend estado (ver docker-compose.yml la) - so
+  # assim os dois containers se alcancam pelo nome. Nunca esteve na rede
+  # "portfolio" do Caddy de proposito: o estado-ai-agent nao deve ser
+  # alcancavel diretamente de fora, so via o BFF do backend estado
+  # (AskProxyService/ASK_API_BASE_URL) - expor publicamente permitia
+  # contornar o rate limit por IP forjando X-Forwarded-For (o
+  # forward-headers-strategy=framework confia nele sem validar proxy
+  # confiavel).
+  estado_internal:
+    external: true
