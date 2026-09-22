@@ -73,6 +73,16 @@
 				<artifactId>jackson-core</artifactId>
 				<version>2.22.3</version>
 			</dependency>
+			<!-- jackson-annotations usa versionamento so de minor (2.22, sem
+			     patch) - precisa bater com o minor de core/databind acima
+			     (2.22.3), senao NoClassDefFoundError em runtime (achado no
+			     CI: JsonApplyView so existe a partir da 2.22, databind 2.22.3
+			     referencia mas annotations ficava preso em 2.21 via BOM). -->
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-annotations</artifactId>
+				<version>2.22</version>
+			</dependency>
 			<dependency>
 				<groupId>tools.jackson.core</groupId>
 				<artifactId>jackson-databind</artifactId>
