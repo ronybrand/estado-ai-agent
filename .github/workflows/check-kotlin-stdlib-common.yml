@@ -1,0 +1,59 @@
+name: Check kotlin-stdlib-common jar availability
+
+# org.jetbrains.kotlin:kotlin-stdlib-common parou de publicar jar real
+# depois da 2.0.21 (so pom/metadata de relocation dai em diante) - por
+# isso esta pinado manualmente em pom.xml e ignorado no dependabot.yml.
+# Essa checagem semanal existe pra essa decisao nao ficar esquecida pra
+# sempre: se o upstream voltar a publicar um jar de verdade numa versao
+# mais nova, abre uma issue avisando.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Compara a versao mais recente do Maven Central com a pinada
+        id: check
+        run: |
+          PINNED="2.0.21"
+          RELEASE=$(curl -s "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/maven-metadata.xml" | grep -oE '<release>[^<]+</release>' | sed 's/<[^>]*>//g')
+          echo "Pinada: $PINNED / Maven Central release: $RELEASE"
+
+          if [ "$RELEASE" = "$PINNED" ]; then
+            echo "Sem novidade, nada a fazer."
+            exit 0
+          fi
+
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/$RELEASE/kotlin-stdlib-common-$RELEASE.jar")
+          echo "HTTP status do jar da $RELEASE: $STATUS"
+
+          if [ "$STATUS" = "200" ]; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+            echo "version=$RELEASE" >> "$GITHUB_OUTPUT"
+          else
+            echo "Metadata aponta $RELEASE, mas ainda sem jar publicado - continua so pom/relocation."
+          fi
+
+      - name: Abre issue avisando (se ainda nao existir uma aberta)
+        if: steps.check.outputs.found == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.check.outputs.version }}
+        run: |
+          EXISTING=$(gh issue list --search "kotlin-stdlib-common jar disponivel in:title" --state open --json number --jq 'length')
+          if [ "$EXISTING" != "0" ]; then
+            echo "Issue ja aberta, nao duplicar."
+            exit 0
+          fi
+
+          gh issue create \
+            --title "kotlin-stdlib-common: jar disponivel na $VERSION" \
+            --body "O Maven Central voltou a publicar um jar real de \`org.jetbrains.kotlin:kotlin-stdlib-common\` na versao \`$VERSION\` (ou mais nova) - https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/$VERSION/
+
+Isso remove a necessidade do override manual em \`pom.xml\` e da regra de \`ignore\` em \`.github/dependabot.yml\` pra este artefato. Verificar e atualizar os dois, depois fechar esta issue."
