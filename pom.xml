@@ -41,6 +41,98 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
+
+			<!-- Overrides pontuais de dependencias transitivas com CVEs conhecidas
+			     (ver relatorio OWASP dependency-check) que o BOM do Spring Boot
+			     4.1.1 ainda nao atualizou - 4.1.1 e a versao mais recente
+			     disponivel no momento (nao ha patch do proprio Spring Boot pra
+			     herdar essas correcoes). Remover estes overrides quando o Spring
+			     Boot liberar um patch que ja traga essas versoes ou mais novas. -->
+			<dependency>
+				<groupId>org.apache.tomcat.embed</groupId>
+				<artifactId>tomcat-embed-core</artifactId>
+				<version>11.0.26</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.tomcat.embed</groupId>
+				<artifactId>tomcat-embed-websocket</artifactId>
+				<version>11.0.26</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.tomcat.embed</groupId>
+				<artifactId>tomcat-embed-el</artifactId>
+				<version>11.0.26</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-databind</artifactId>
+				<version>2.22.3</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-core</artifactId>
+				<version>2.22.3</version>
+			</dependency>
+			<dependency>
+				<groupId>tools.jackson.core</groupId>
+				<artifactId>jackson-databind</artifactId>
+				<version>3.2.3</version>
+			</dependency>
+			<dependency>
+				<groupId>tools.jackson.core</groupId>
+				<artifactId>jackson-core</artifactId>
+				<version>3.2.3</version>
+			</dependency>
+			<dependency>
+				<groupId>org.jetbrains.kotlin</groupId>
+				<artifactId>kotlin-stdlib</artifactId>
+				<version>2.4.20</version>
+			</dependency>
+			<!-- kotlin-stdlib-common parou de publicar jar real depois da 2.0.21
+			     (so pom/metadata de relocation dai em diante - confirmado via
+			     404 em 2.1.21/2.2.21/2.3.21/2.4.20) - 2.0.21 e a versao mais
+			     nova resolvivel, mesmo mais antiga que o kotlin-stdlib
+			     principal (2.4.20, acima). Pode nao cobrir 100% do
+			     CVE-2026-53914 se ele afetar toda a linha 2.x de
+			     kotlin-stdlib-common, mas e o teto do que da pra corrigir via
+			     override de versao aqui. -->
+			<dependency>
+				<groupId>org.jetbrains.kotlin</groupId>
+				<artifactId>kotlin-stdlib-common</artifactId>
+				<version>2.0.21</version>
+			</dependency>
+			<dependency>
+				<groupId>com.google.protobuf</groupId>
+				<artifactId>protobuf-java</artifactId>
+				<version>4.36.2</version>
+			</dependency>
+			<!-- logback-classic e logback-core precisam ser da MESMA versao -
+			     sem o override do -core aqui, o -classic 1.6.3 quebra o boot
+			     com AbstractMethodError (getDefaultConverterMap) contra o
+			     -core 1.5.38 que o BOM do Spring Boot ainda gerencia. -->
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-classic</artifactId>
+				<version>1.6.3</version>
+			</dependency>
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-core</artifactId>
+				<version>1.6.3</version>
+			</dependency>
+			<dependency>
+				<groupId>org.hibernate.validator</groupId>
+				<artifactId>hibernate-validator</artifactId>
+				<version>9.1.4.Final</version>
+			</dependency>
+			<dependency>
+				<groupId>com.networknt</groupId>
+				<artifactId>json-schema-validator</artifactId>
+				<version>3.0.7</version>
+			</dependency>
+			<!-- HdrHistogram (CVE-2026-14683/14686, severidade LOW) NAO tem
+			     override aqui: 2.2.2 ja e a versao mais recente publicada no
+			     Maven Central - nada a fazer ate o projeto liberar um patch. -->
 		</dependencies>
 	</dependencyManagement>
 
