@@ -9,6 +9,15 @@ updates:
       weekly-batch:
         patterns:
           - "*"
+    ignore:
+      # org.jetbrains.kotlin:kotlin-stdlib-common parou de publicar jar real
+      # depois da 2.0.21 (so pom/metadata de relocation dai em diante -
+      # confirmado via 404 em 2.1.21/2.2.21/2.3.21/2.4.20, ver pom.xml). O
+      # Dependabot nao sabe disso e tenta bumpar pra "latest" toda semana,
+      # quebrando o build (Could not find artifact) - ignorado ate o
+      # upstream voltar a publicar um jar de verdade.
+      - dependency-name: "org.jetbrains.kotlin:kotlin-stdlib-common"
+        versions: [">2.0.21"]
 
   - package-ecosystem: github-actions
     directory: /
