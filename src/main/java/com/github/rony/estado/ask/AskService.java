@@ -24,6 +24,15 @@ public class AskService {
 
     AskResponse ask(AskRequest request) {
         log.info("Consultando modelo de IA, tamanho da pergunta={}", request.question().length());
+        if (PromptInjectionGuard.isSuspicious(request.question())) {
+            // Guarda de entrada deterministica: bloqueia as tentativas mais
+            // comuns e baratas de prompt injection antes mesmo de consumir
+            // uma chamada ao LLM. Nao substitui a guarda de saida (que cobre
+            // vazamento efetivo de regras internas mesmo quando esta guarda
+            // de entrada nao reconhece a frase usada).
+            log.warn("Pergunta sinalizada como tentativa de prompt injection - bloqueada antes do LLM");
+            return new AskResponse(LEAK_REFUSAL_MESSAGE);
+        }
         try {
             String answer = chatClient.prompt()
                     .user(request.question())
