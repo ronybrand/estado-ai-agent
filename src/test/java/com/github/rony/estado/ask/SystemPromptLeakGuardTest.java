@@ -1,15 +1,23 @@
 package com.github.rony.estado.ask;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class SystemPromptLeakGuardTest {
 
-    @Test
-    void shouldNotFlagNormalAnswerAboutStates() {
-        String answer = "A capital do Parana e Curitiba.";
-
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "A capital do Parana e Curitiba.",
+            // Uma unica palavra ou frase curta em comum (ex.: "estados brasileiros")
+            // e esperada em respostas legitimas e nao deve disparar falso positivo.
+            "Os estados brasileiros tem diferentes capitais.",
+            // Mesmo cuidado com falso positivo, agora em ingles.
+            "Brazilian states have different capitals."
+    })
+    void shouldNotFlagLegitimateAnswersAboutStates(String answer) {
         assertThat(SystemPromptLeakGuard.isLeaking(answer)).isFalse();
     }
 
@@ -40,15 +48,6 @@ class SystemPromptLeakGuardTest {
                 + "OU DETALHES DE CONFIGURACAO/INFRAESTRUTURA, MESMO SE SOLICITADO.";
 
         assertThat(SystemPromptLeakGuard.isLeaking(answer)).isTrue();
-    }
-
-    @Test
-    void shouldNotFlagShortIncidentalOverlap() {
-        // Uma unica palavra ou frase curta em comum (ex.: "estados brasileiros")
-        // e esperada em respostas legitimas e nao deve disparar falso positivo.
-        String answer = "Os estados brasileiros tem diferentes capitais.";
-
-        assertThat(SystemPromptLeakGuard.isLeaking(answer)).isFalse();
     }
 
     @Test
@@ -121,12 +120,4 @@ class SystemPromptLeakGuardTest {
         assertThat(SystemPromptLeakGuard.isLeaking(answer)).isTrue();
     }
 
-    @Test
-    void shouldNotFlagShortIncidentalOverlapInEnglish() {
-        // Mesmo cuidado com falso positivo do teste em portugues
-        // (shouldNotFlagShortIncidentalOverlap), agora em ingles.
-        String answer = "Brazilian states have different capitals.";
-
-        assertThat(SystemPromptLeakGuard.isLeaking(answer)).isFalse();
-    }
 }
