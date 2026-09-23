@@ -11,4 +11,12 @@ class SystemPromptTest {
         assertThat(SystemPrompt.INTERNAL_RULES)
                 .contains("mesmo idioma em que a pergunta foi feita");
     }
+
+    @Test
+    void shouldRestrictSupportedLanguagesToPortugueseAndEnglish() {
+        String normalized = SystemPrompt.INTERNAL_RULES.replaceAll("\\s+", " ");
+        assertThat(normalized)
+                .contains("apenas em portugues ou ingles")
+                .contains("recuse educadamente, em portugues, informando que so responde em portugues ou ingles");
+    }
 }
