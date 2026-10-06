@@ -29,7 +29,7 @@
 	<properties>
 		<java.version>25</java.version>
 		<spring-ai.version>2.0.1</spring-ai.version>
-		<bucket4j.version>8.20.0</bucket4j.version>
+		<bucket4j.version>8.21.0</bucket4j.version>
 	</properties>
 
 	<dependencyManagement>
@@ -123,12 +123,12 @@
 			<dependency>
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-classic</artifactId>
-				<version>1.6.4</version>
+				<version>1.6.5</version>
 			</dependency>
 			<dependency>
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-core</artifactId>
-				<version>1.6.4</version>
+				<version>1.6.5</version>
 			</dependency>
 			<dependency>
 				<groupId>org.hibernate.validator</groupId>
@@ -138,7 +138,7 @@
 			<dependency>
 				<groupId>com.networknt</groupId>
 				<artifactId>json-schema-validator</artifactId>
-				<version>3.0.7</version>
+				<version>3.0.8</version>
 			</dependency>
 			<!-- HdrHistogram (CVE-2026-14683/14686, severidade LOW) NAO tem
 			     override aqui: 2.2.2 ja e a versao mais recente publicada no
