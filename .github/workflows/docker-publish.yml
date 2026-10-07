@@ -21,6 +21,11 @@ jobs:
        github.event.workflow_run.event == 'push' &&
        github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-latest
+    # A EC2 puxa a imagem por conta propria, entao isto marca a publicacao da
+    # imagem, nao o swap em si, que acontece ate 5 min depois. Sem url: o
+    # agente nao e publico, so acessivel via /ask do backend.
+    environment:
+      name: production
     permissions:
       contents: read
       packages: write
