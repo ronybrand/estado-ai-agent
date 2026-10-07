@@ -9,6 +9,12 @@
 # precisa escapar o hash BCrypt), entao --env-file e seguro aqui - nao
 # precisa listar cada variavel manualmente.
 
+# Mesma motivacao do repo estado (ver deploy/estado/lib-swap.sh la): a JVM padrao
+# (G1, heap = 1/4 da RAM) ocupava ~225 MB aqui, e a instancia e t3.micro (1 GB).
+# Sobrescreve-se via .env.
+AGENT_JAVA_OPTS="${AGENT_JAVA_OPTS:--XX:+UseSerialGC -Xmx128m -Xss512k -XX:TieredStopAtLevel=1 -XX:MaxMetaspaceSize=80m -XX:ReservedCodeCacheSize=32m}"
+AGENT_MEMORY_LIMIT="${AGENT_MEMORY_LIMIT:-288m}"
+
 swap_to() {
     local image="$1"
 
@@ -18,6 +24,8 @@ swap_to() {
         --restart unless-stopped \
         --network estado_internal \
         --env-file .env \
+        --memory "$AGENT_MEMORY_LIMIT" \
+        -e JAVA_TOOL_OPTIONS="$AGENT_JAVA_OPTS" \
         -e ESTADO_API_BASE_URL="http://estado-app:8080" \
         "$image" >/dev/null
 
