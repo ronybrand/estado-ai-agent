@@ -5,6 +5,8 @@ import com.github.rony.estado.exception.UpstreamServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.google.genai.GoogleGenAiChatOptions;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 
@@ -15,8 +17,13 @@ public class AskService {
 
     private final ChatClient chatClient;
 
-    public AskService(ChatClient chatClient) {
+    private final String modeloReserva;
+
+    // Modelo usado quando o principal esta sem capacidade (503/429) ou lento
+    // (timeout); vazio desliga o fallback.
+    public AskService(ChatClient chatClient, @Value("${app.gemini.fallback-model:}") String modeloReserva) {
         this.chatClient = chatClient;
+        this.modeloReserva = modeloReserva;
     }
 
     private static final String LEAK_REFUSAL_MESSAGE =
@@ -34,10 +41,7 @@ public class AskService {
             return new AskResponse(LEAK_REFUSAL_MESSAGE);
         }
         try {
-            String answer = chatClient.prompt()
-                    .user(request.question())
-                    .call()
-                    .content();
+            String answer = consultarModelo(request.question());
             log.info("Resposta do modelo de IA obtida com sucesso");
             if (SystemPromptLeakGuard.isLeaking(answer)) {
                 // Guarda de saida deterministica: um prompt injection bem
@@ -52,6 +56,29 @@ public class AskService {
             log.warn("Falha ao consultar a API de estados via modelo de IA", e);
             throw new UpstreamServiceException(
                     ErrorCode.ASK_02_UPSTREAM_FAILURE, "Falha ao consultar a API de estados", e);
+        }
+    }
+
+    private String consultarModelo(String pergunta) {
+        try {
+            return chatClient.prompt().user(pergunta).call().content();
+        } catch (RuntimeException falhaPrincipal) {
+            if (modeloReserva == null || modeloReserva.isBlank()
+                    || !GeminiFailures.valeTentarOutroModelo(falhaPrincipal)) {
+                throw falhaPrincipal;
+            }
+            log.warn("Modelo principal indisponivel ou lento, tentando o modelo reserva {}: {}",
+                    modeloReserva, falhaPrincipal.getMessage());
+            try {
+                return chatClient.prompt()
+                        .user(pergunta)
+                        .options(GoogleGenAiChatOptions.builder().model(modeloReserva))
+                        .call()
+                        .content();
+            } catch (RuntimeException falhaReserva) {
+                falhaReserva.addSuppressed(falhaPrincipal);
+                throw falhaReserva;
+            }
         }
     }
 }
