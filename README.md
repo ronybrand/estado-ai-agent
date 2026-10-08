@@ -52,6 +52,10 @@ public entry point with its own quota.
      or `GET /estado/{id}`).
   3. Receive the HTTP JSON response, understand the data, and compose the
      final answer in natural language.
+- **Model fallback**: if the main Gemini model is overloaded (503), out of
+  quota (429) or slow (timeout), the agent retries once with a reserve model
+  (`app.gemini.fallback-model`). Other errors are not retried. See
+  [ADR 0009](docs/adr/0009-modelo-reserva-do-gemini-e-cadeia-de-timeouts.md).
 - **Authentication**: `/ask` requires the `X-API-Key` header, validated with
   a constant-time comparison against `ASK_API_KEY`.
 - **Quota protection**: per-IP rate limiting (Bucket4j, in-memory), with
@@ -94,6 +98,8 @@ application fails at boot without them:
 | `ASK_API_KEY` | yes | Key required in the `X-API-Key` header to call `/ask` |
 | `ASK_RATE_LIMIT_CAPACITY` | no (default `10`) | Requests per IP allowed per window on `/ask` |
 | `ASK_RATE_LIMIT_WINDOW_MINUTES` | no (default `1`) | Rate limit window duration, in minutes |
+| `APP_GEMINI_FALLBACK_MODEL` | no (default `gemini-3.1-flash-lite`) | Reserve model tried on 503/429/timeout; empty disables the fallback |
+| `APP_GEMINI_TIMEOUT_MS` | no (default `15000`) | Timeout of each call to Gemini, in milliseconds |
 
 ## Running locally
 
