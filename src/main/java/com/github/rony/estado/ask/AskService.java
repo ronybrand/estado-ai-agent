@@ -8,6 +8,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.google.genai.GoogleGenAiChatOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 
 @Service
@@ -63,8 +64,7 @@ public class AskService {
         try {
             return chatClient.prompt().user(pergunta).call().content();
         } catch (RuntimeException falhaPrincipal) {
-            if (modeloReserva == null || modeloReserva.isBlank()
-                    || !GeminiFailures.valeTentarOutroModelo(falhaPrincipal)) {
+            if (!StringUtils.hasText(modeloReserva) || !GeminiFailures.valeTentarOutroModelo(falhaPrincipal)) {
                 throw falhaPrincipal;
             }
             log.warn("Modelo principal indisponivel ou lento, tentando o modelo reserva {}: {}",
