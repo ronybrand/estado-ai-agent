@@ -12,7 +12,7 @@
 # Mesma motivacao do repo estado (ver deploy/estado/lib-swap.sh la): a JVM padrao
 # (G1, heap = 1/4 da RAM) ocupava ~225 MB aqui, e a instancia e t3.micro (1 GB).
 # Sobrescreve-se via .env.
-AGENT_JAVA_OPTS="${AGENT_JAVA_OPTS:--XX:+UseSerialGC -Xmx128m -Xss512k -XX:TieredStopAtLevel=1 -XX:MaxMetaspaceSize=112m -XX:ReservedCodeCacheSize=32m}"
+AGENT_JAVA_OPTS="${AGENT_JAVA_OPTS:--XX:+UseSerialGC -Xmx128m -Xss512k -XX:TieredStopAtLevel=1 -XX:MaxMetaspaceSize=112m -XX:ReservedCodeCacheSize=32m -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=20}"
 AGENT_MEMORY_LIMIT="${AGENT_MEMORY_LIMIT:-288m}"
 
 swap_to() {
@@ -30,7 +30,7 @@ swap_to() {
         "$image" >/dev/null
 
     if docker run --rm --network estado_internal curlimages/curl:8.11.1 sh -c "
-        for i in \$(seq 1 30); do
+        for i in \$(seq 1 90); do
             curl -sf http://${NEXT}:8080/actuator/health >/dev/null 2>&1 && exit 0
             sleep 2
         done
