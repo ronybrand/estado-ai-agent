@@ -4,6 +4,7 @@ import com.github.rony.estado.ask.EstadoTools;
 import com.github.rony.estado.ask.SystemPrompt;
 import com.google.genai.Client;
 import com.google.genai.types.HttpOptions;
+import com.google.genai.types.HttpRetryOptions;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.model.google.genai.autoconfigure.chat.GoogleGenAiConnectionProperties;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,8 +33,16 @@ public class ChatClientConfig {
 
     // Visivel pro teste (ChatClientConfigTest) sem precisar subir o Client
     // inteiro (que faria uma chamada real de rede pra validar a api key).
+    //
+    // Uma tentativa so: o retry interno do SDK (5 tentativas com espera
+    // exponencial por padrao) fazia um timeout de 15 s virar ~55 s, estourando
+    // o read-timeout do backend antes de o AskService tentar o modelo reserva.
+    // O fallback de modelo e o unico mecanismo de nova tentativa.
     static HttpOptions geminiHttpOptions(int timeoutMs) {
-        return HttpOptions.builder().timeout(timeoutMs).build();
+        return HttpOptions.builder()
+                .timeout(timeoutMs)
+                .retryOptions(HttpRetryOptions.builder().attempts(1).build())
+                .build();
     }
 
     @Bean
