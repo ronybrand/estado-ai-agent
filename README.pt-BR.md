@@ -36,6 +36,9 @@ O agente nunca é alcançável de fora da instância EC2 diretamente — só o `
   1. Identificar a intenção e os parâmetros.
   2. Acionar uma `Tool` em Java para bater no endpoint real (`GET /estado/paginado` ou `GET /estado/{id}`).
   3. Receber o JSON da resposta HTTP, entender os dados, e compor a resposta final ao usuário em linguagem natural.
+- **Modelo reserva**: se o modelo principal do Gemini estiver sobrecarregado (503), sem cota (429) ou lento
+  (timeout), o agente tenta uma vez um modelo reserva (`app.gemini.fallback-model`). Outros erros não são
+  repetidos. Ver [ADR 0009](docs/adr/0009-modelo-reserva-do-gemini-e-cadeia-de-timeouts.md).
 - **Autenticação**: `/ask` exige o header `X-API-Key`, validado por comparação constant-time contra `ASK_API_KEY`.
 - **Proteção de Quota**: Rate limiting por IP (Bucket4j, em memória), com capacidade e janela configuráveis via env vars - default de 10 requisições/minuto, calibrado para o Free Tier do Gemini.
 - **Defesa contra prompt injection**: duas camadas deterministas complementam a instrução do próprio system prompt (que é probabilística) - uma guarda de entrada bloqueia as tentativas mais comuns e conhecidas antes de chamar o LLM, e uma guarda de saída detecta e substitui qualquer resposta que reproduza as regras internas do system prompt.
@@ -62,6 +65,8 @@ Nenhuma das variáveis abaixo tem valor padrão além das indicadas - a aplicaç
 | `ASK_API_KEY` | sim | Chave exigida no header `X-API-Key` para chamar `/ask` |
 | `ASK_RATE_LIMIT_CAPACITY` | não (default `10`) | Requisições por IP permitidas por janela em `/ask` |
 | `ASK_RATE_LIMIT_WINDOW_MINUTES` | não (default `1`) | Duração da janela do rate limit, em minutos |
+| `APP_GEMINI_FALLBACK_MODEL` | não (default `gemini-3.1-flash-lite`) | Modelo reserva tentado em 503/429/timeout; vazio desliga o fallback |
+| `APP_GEMINI_TIMEOUT_MS` | não (default `15000`) | Timeout de cada chamada ao Gemini, em milissegundos |
 
 ## Como rodar localmente
 
