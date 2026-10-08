@@ -22,3 +22,9 @@ Não havia processo de deploy nem scan de segurança automatizado. O repositóri
 - Deploy e CI/CD deste serviço seguem exatamente o mesmo padrão operacional já validado no `estado`, reduzindo a superfície de decisões novas e de erro operacional.
 - Um bug ou lacuna de segurança encontrado nesse padrão (no `estado` ou aqui) deveria, por consistência, ser corrigido nos dois repositórios.
 - Métricas/tracing deste serviço ainda não são coletados pelo Grafana Alloy já existente no host (ver ADR 0007) - só os logs, via descoberta automática de containers Docker.
+
+## Atualização (2026-10-08)
+O padrão do `estado` ganhou a drenagem do container antigo no swap (60 s, `DRAIN_SECONDS`), e o
+`lib-swap.sh` deste repositório foi alinhado: sem ela, o backend recebia 502 em `/ask` por até ~30 s
+depois de cada deploy do agente (IP em cache e conexão keep-alive com o container removido). Detalhes
+e medições no ADR 0023 do repositório `estado`.
