@@ -56,4 +56,4 @@ jobs:
             --title "kotlin-stdlib-common: jar disponivel na $VERSION" \
             --body "O Maven Central voltou a publicar um jar real de \`org.jetbrains.kotlin:kotlin-stdlib-common\` na versao \`$VERSION\` (ou mais nova) - https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/$VERSION/
 
-Isso remove a necessidade do override manual em \`pom.xml\` e da regra de \`ignore\` em \`.github/dependabot.yml\` pra este artefato. Verificar e atualizar os dois, depois fechar esta issue."
+          Isso remove a necessidade do override manual em \`pom.xml\` e da regra de \`ignore\` em \`.github/dependabot.yml\` pra este artefato. Verificar e atualizar os dois, depois fechar esta issue."
