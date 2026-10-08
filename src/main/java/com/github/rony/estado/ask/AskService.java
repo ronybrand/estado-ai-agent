@@ -2,13 +2,13 @@ package com.github.rony.estado.ask;
 
 import com.github.rony.estado.exception.ErrorCode;
 import com.github.rony.estado.exception.UpstreamServiceException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.google.genai.GoogleGenAiChatOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 
 @Service
@@ -64,7 +64,7 @@ public class AskService {
         try {
             return chatClient.prompt().user(pergunta).call().content();
         } catch (RuntimeException falhaPrincipal) {
-            if (!StringUtils.hasText(modeloReserva) || !GeminiFailures.valeTentarOutroModelo(falhaPrincipal)) {
+            if (StringUtils.isBlank(modeloReserva) || !GeminiFailures.valeTentarOutroModelo(falhaPrincipal)) {
                 throw falhaPrincipal;
             }
             log.warn("Modelo principal indisponivel ou lento, tentando o modelo reserva {}: {}",
