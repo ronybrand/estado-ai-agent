@@ -45,6 +45,7 @@ if swap_to "$IMAGE"; then
 
     NEW_TAG="$(image_revision "$NEW_ID")"
     annotate_deploy "Deploy: estado-ai-agent-app -> ${NEW_TAG:-$NEW_ID}" '["deploy","estado-ai-agent"]'
+    drenar_antigo
 else
     echo "Health check falhou, mantendo versao anterior no ar." >&2
     exit 1
