@@ -37,6 +37,15 @@ jobs:
       - id: sha
         run: echo "short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
 
+      # Multi-arch (fase 5.0/5.5 do plano de migracao do repo estado,
+      # docs/plano-dominio-proprio.md - a instancia nova e t4g.micro/arm64
+      # em us-east-1). Diferente do backend estado (GraalVM native, build
+      # pesado o bastante pra exigir runner nativo por arch), aqui e so
+      # Maven+JRE puro (eclipse-temurin, multi-arch oficial) - um build so
+      # com platforms: sob QEMU basta, sem o custo de 2 jobs + merge de
+      # manifesto por digest.
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
+
       - uses: docker/setup-buildx-action@594f3bf4285d9ea8dc53c9a0c9c4092420091003 # v4
 
       - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
@@ -56,6 +65,7 @@ jobs:
       - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: .
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
