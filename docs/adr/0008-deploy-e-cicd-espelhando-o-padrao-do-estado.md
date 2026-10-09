@@ -28,3 +28,8 @@ O padrão do `estado` ganhou a drenagem do container antigo no swap (60 s, `DRAI
 `lib-swap.sh` deste repositório foi alinhado: sem ela, o backend recebia 502 em `/ask` por até ~30 s
 depois de cada deploy do agente (IP em cache e conexão keep-alive com o container removido). Detalhes
 e medições no ADR 0023 do repositório `estado`.
+
+## Atualização (2026-10-09)
+O padrão ganhou também o prune de imagens a cada deploy com a tag local `anterior` (volta que não depende
+do registry: `./rollback.sh anterior`). O `lib-swap.sh` e o `rollback.sh` deste repositório foram
+alinhados; detalhes no ADR 0008 do repositório `estado`.
