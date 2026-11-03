@@ -123,12 +123,12 @@
 			<dependency>
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-classic</artifactId>
-				<version>1.6.5</version>
+				<version>1.6.6</version>
 			</dependency>
 			<dependency>
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-core</artifactId>
-				<version>1.6.5</version>
+				<version>1.6.6</version>
 			</dependency>
 			<dependency>
 				<groupId>org.hibernate.validator</groupId>
@@ -249,7 +249,7 @@
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.8.15</version>
+				<version>0.8.16</version>
 				<executions>
 					<execution>
 						<goals>
