@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.1.2</version>
+		<version>4.2.0</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.github.rony.estado</groupId>
@@ -28,7 +28,7 @@
 	</scm>
 	<properties>
 		<java.version>25</java.version>
-		<spring-ai.version>2.0.2</spring-ai.version>
+		<spring-ai.version>2.1.0</spring-ai.version>
 		<bucket4j.version>8.22.0</bucket4j.version>
 	</properties>
 
@@ -123,17 +123,17 @@
 			<dependency>
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-classic</artifactId>
-				<version>1.6.7</version>
+				<version>1.6.8</version>
 			</dependency>
 			<dependency>
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-core</artifactId>
-				<version>1.6.7</version>
+				<version>1.6.8</version>
 			</dependency>
 			<dependency>
 				<groupId>org.hibernate.validator</groupId>
 				<artifactId>hibernate-validator</artifactId>
-				<version>9.1.6.Final</version>
+				<version>9.2.0.Final</version>
 			</dependency>
 			<dependency>
 				<groupId>com.networknt</groupId>
@@ -225,7 +225,7 @@
 					<path>
 						<groupId>org.springframework.boot</groupId>
 						<artifactId>spring-boot-configuration-processor</artifactId>
-						<version>4.1.2</version>
+						<version>4.2.0</version>
 					</path>
 				</annotationProcessorPaths>
 			</configuration>
